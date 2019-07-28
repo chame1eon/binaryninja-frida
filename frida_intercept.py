@@ -13,10 +13,10 @@ class FridaIntercept:
         self.is_running = False
         self.is_enabled = False
         self.invalidated = False
-        
+
         self.reset_on_enter()
         self.reset_on_leave()
-        
+
     def _on_message(self, message, data):
         log.log_info("Frida Plugin: message received from function at address " + self.addr + ":")
         if message["type"] == "send":
@@ -25,33 +25,33 @@ class FridaIntercept:
                 log.log_info(data)
         elif message["type"] == "error":
             log.log_error(message["description"])
-        
+
     def set_on_enter(self, onEnter):
         self.onEnter = onEnter
         self.invalidated = True
-        
+
     def reset_on_enter(self):
         on_enter = ''
         for i in range(0, len(self.params)):
             on_enter += 'console.log("args[%d]:", args[%d]);\n' % (i, i)
         self.onEnter = on_enter
         self.invalidated = True
-        
+
     def set_on_leave(self, onLeave):
         self.onLeave = onLeave
         self.invalidated = True
-        
+
     def reset_on_leave(self):
         if self.ret != "void":
             self.onLeave = 'console.log("retval:", retval);'
         else:
             self.onLeave = ''
         self.invalidated = True
-        
+
     def set_module_name(self, module_name):
         self.module_name = module_name
         self.invalidated = True
-        
+
     def update_function_def(self, function):
         params = []
         for p in function.parameter_vars:
@@ -63,45 +63,54 @@ class FridaIntercept:
         if updated_ret != self.ret:
             self.ret = updated_ret
             self.invalidated = True
-        
+
     def to_frida_script(self):
         script = ""
         if self.module_name:
-            script += 'var base = Module.findBaseAddress("' + self.module_name + '");\n'
+            script = """
+                var searchModule = "%s";
+                var modules = Process.enumerateModules();
+                var moduleName = null;
+                for (var i = 0; i < modules.length; i++) {
+                    if (modules[i].name.indexOf(searchModule) > -1) {
+                        moduleName = modules[i].name;
+                    }
+                }
+                var base = Module.findBaseAddress(moduleName);
+            """ % (self.module_name)
         else:
             script += 'var base = ptr("0x0");\n'
         script += 'var f = new NativeFunction(base.add(ptr("' + self.addr + '")), "' + self.ret + '", ['
         for p in self.params:
             script += '"' + p + '", '
-            
+
         if len(self.params) > 0:
             script = script[:-2]
-            
-        
-        script += ']' + ', "' + self.abi + '"' + ');\n'
-        
+
+        script += ']);\n'
+
         script += 'Interceptor.attach(f, {\n'
-        
+
         if self.onEnter:
             script += 'onEnter: function(args) {\n'
             script += self.onEnter + '\n'
             script += '}'
-            
+
         if self.onEnter and self.onLeave:
             script += ',\n'
-            
+
         if self.onLeave:
             script += 'onLeave: function(retval) {\n'
             script += self.onLeave + '\n'
             script += '}\n'
-            
+
         script += '});\n'
-        
+
         return script
-    
+
     def enable(self):
         self.is_enabled = True
-        
+
     def start(self, script):
         if self.is_enabled and not self.is_running:
             self.script = script
@@ -109,27 +118,27 @@ class FridaIntercept:
             self.script.load()
             self.is_running = True
             self.invalidated = False
-    
+
     def stop(self):
         if self.is_running:
             if self.script != None:
                 self.script.unload()
                 self.is_running = False
-    
+
     def disable(self):
         self.is_enabled = False
         self.stop()
-        
+
     def is_invalidated(self):
         return self.invalidated
-    
+
     def reload(self, script):
         self.stop()
         self.start(script)
-        
+
     def serialize(self):
         intercept = {}
-        
+
         intercept["addr"] = self.addr
         intercept["params"] = self.params
         intercept["ret"] = self.ret
@@ -138,19 +147,19 @@ class FridaIntercept:
         intercept["on_enter"] = base64.b64encode(self.onEnter)
         intercept["on_leave"] = base64.b64encode(self.onLeave)
         intercept["is_enabled"] = self.is_enabled
-        
+
         return intercept
-        
+
     @staticmethod
     def deserialize(intercept):
         fi = FridaIntercept(intercept["addr"], intercept["params"], intercept["ret"], intercept["module_name"], intercept["abi"])
-        
+
         fi.onEnter = base64.b64decode(intercept["on_enter"])
         fi.onLeave = base64.b64decode(intercept["on_leave"])
         fi.is_enabled = intercept["is_enabled"]
-        
+
         return fi
-    
+
     @staticmethod
     def from_bn_function(function, base, module_name=None):
         addr = "0x%x" % (function.start - base)
@@ -162,7 +171,7 @@ class FridaIntercept:
         if "thumb" in function.platform.name:
             actual_addr = "0x%x" % ((function.start - base) + 1)
         return FridaIntercept(actual_addr, params, ret, module_name, function.calling_convention.name)
-    
+
     @staticmethod
     def to_frida_type(bn_type):
         t = ""
@@ -182,12 +191,12 @@ class FridaIntercept:
             t = "void"
 
         return t
-    
+
     @staticmethod
     def to_frida_abi(bn_abi):
         abi = bn_abi
-        
+
         if abi == "cdecl":
             abi = "mscdecl"
-            
+
         return abi

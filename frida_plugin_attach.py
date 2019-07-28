@@ -7,10 +7,10 @@ import frida
 class FridaPluginAttach(FridaPlugin):
     def __init__(self, settings):
         super(FridaPluginAttach, self).__init__(settings)
-    
+
     def is_valid(self, bv, function=None):
         return self.frida_device != None
-    
+
     def run(self, bv, function=None):
         device_id = self.settings.get_string("device_id")
         if device_id:
@@ -26,7 +26,7 @@ class FridaPluginAttach(FridaPlugin):
                 last_process = bv.query_metadata("frida_plugin_process_name")
             except KeyError:
                 last_process = self.settings.get_string("process_name")
-            
+
             processes = []
             processes_reorder = []
             for process in frida_processes:
@@ -45,11 +45,8 @@ class FridaPluginAttach(FridaPlugin):
                 self.frida_session = device.attach(process.pid)
                 log.log_info("Frida Plugin: Successfully connected to device.")
                 filename = os.path.split(bv.file.filename)[-1].split('.')[0] + '.'
-                modules = self.frida_session.enumerate_modules()
-                for module in modules:
-                    if filename in module.name:
-                        self.module_name = module.name
-                        
+                self.module_name = filename
+
                 for addr, intercept in self.intercepts.items():
                     if intercept.is_enabled:
                         intercept.set_module_name(self.module_name)
