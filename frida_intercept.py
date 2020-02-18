@@ -1,8 +1,11 @@
+from builtins import str
+from builtins import range
+from builtins import object
 from binaryninja import *
 
 import base64
 
-class FridaIntercept:
+class FridaIntercept(object):
     def __init__(self, addr, params, ret, module_name=None, abi='default'):
         self.addr = addr
         self.params = params
