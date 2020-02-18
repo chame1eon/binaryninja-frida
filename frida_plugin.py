@@ -4,7 +4,7 @@ import frida
 import os
 import json
 
-from frida_intercept import FridaIntercept
+from .frida_intercept import FridaIntercept
 
 class FridaPlugin(object):
     def __init__(self, settings):
@@ -20,7 +20,7 @@ class FridaPlugin(object):
             self.intercepts = {}
             serialized_intercepts = json.loads(bv.query_metadata("frida_plugin_intercepts"))
             
-            for addr, intercept in serialized_intercepts.items():
+            for addr, intercept in list(serialized_intercepts.items()):
                 if addr not in self.intercepts:
                     self.intercepts[addr] = FridaIntercept.deserialize(intercept)
                     
@@ -32,7 +32,7 @@ class FridaPlugin(object):
 
     def _store_metadata(self, bv):
         serialized_intercepts = {}
-        for addr, intercept in self.intercepts.items():
+        for addr, intercept in list(self.intercepts.items()):
             serialized_intercepts[addr] = intercept.serialize()
 
         bv.store_metadata("frida_plugin_intercepts", json.dumps(serialized_intercepts))
@@ -58,7 +58,7 @@ class FridaPlugin(object):
         bv.session_data["module_name"] = self.module_name
     
     def _reload_intercepts(self):
-        for addr, intercept in self.intercepts.items():
+        for addr, intercept in list(self.intercepts.items()):
             intercept.update_function_def(self.global_bv.get_functions_containing(int(addr, 16))[0])
             if intercept.is_running and intercept.is_invalidated():
                 intercept.reload(self.frida_session.create_script(intercept.to_frida_script()))

@@ -1,11 +1,11 @@
-from frida_plugin import FridaPlugin
+from .frida_plugin import FridaPlugin
 
 class FridaPluginStop(FridaPlugin):
     def __init__(self, settings):
         super(FridaPluginStop, self).__init__(settings)
     
     def run(self, bv, function=None):
-        for addr, intercept in self.intercepts.items():
+        for addr, intercept in list(self.intercepts.items()):
             if intercept.is_enabled == True:
                 log.log_info("Frida Plugin: Removing intercept at %s" % intercept.addr)
                 intercept.stop()

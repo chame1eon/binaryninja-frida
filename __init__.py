@@ -1,19 +1,21 @@
 import sys
-if sys.platform == 'win32':
-    sys.path.append('C:\Python27\Lib\site-packages')
 
 from binaryninja import *
 
-from frida_plugin_start import FridaPluginStart
-from frida_plugin_attach import FridaPluginAttach
-from frida_plugin_stop import FridaPluginStop
-from frida_plugin_intercept import FridaPluginIntercept
-from frida_plugin_modify import FridaPluginModify
-from frida_plugin_remove import FridaPluginRemove
-from frida_plugin_reload import FridaPluginReload
+from .frida_plugin_start import FridaPluginStart
+from .frida_plugin_attach import FridaPluginAttach
+from .frida_plugin_stop import FridaPluginStop
+from .frida_plugin_intercept import FridaPluginIntercept
+from .frida_plugin_modify import FridaPluginModify
+from .frida_plugin_remove import FridaPluginRemove
+from .frida_plugin_reload import FridaPluginReload
 
 intercepts = {}
-settings = Setting("binaryninja-frida")
+settings = Settings("binaryninja-frida")
+settings.register_group("frida", "Frida Settings")
+settings.register_setting("frida.device_id", '{"description" : "Currently selected device id.", "title" : "Frida Device ID", "default" : "", "type" : "string"}')
+settings.register_setting("frida.process_name", '{"description" : "Currently selected process name", "title" : "Frida Selected Process Name", "default" : "", "type" : "string"}')
+
 
 plugin_commands = [
     {
