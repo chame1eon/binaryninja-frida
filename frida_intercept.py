@@ -1,6 +1,3 @@
-from builtins import str
-from builtins import range
-from builtins import object
 from binaryninja import *
 
 import base64

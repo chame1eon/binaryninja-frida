@@ -1,7 +1,7 @@
 {
 	"name": "Frida",
 	"type": ["helper"],
-	"api": ["python2", "python3"],
+	"api": ["python3"],
 	"pluginmetadataversion": 2,
 	"platforms": ["Linux", "Windows", "Darwin"],
 	"installinstructions" : {
