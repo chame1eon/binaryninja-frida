@@ -12,7 +12,7 @@ class FridaPluginAttach(FridaPlugin):
         return self.frida_device != None
 
     def run(self, bv, function=None):
-        device_id = self.settings.get_string("device_id")
+        device_id = self.settings.get_string("frida.device_id")
         if device_id:
             device = None
             try:
@@ -25,7 +25,7 @@ class FridaPluginAttach(FridaPlugin):
             try:
                 last_process = bv.query_metadata("frida_plugin_process_name")
             except KeyError:
-                last_process = self.settings.get_string("process_name")
+                last_process = self.settings.get_string("frida.process_name")
 
             processes = []
             processes_reorder = []
@@ -39,7 +39,7 @@ class FridaPluginAttach(FridaPlugin):
             choice_f = ChoiceField("Processes", processes)
             get_form_input([choice_f], "Attach Frida to Process")
             if choice_f.result != None:
-                self.settings.set_string("process_name", processes_reorder[choice_f.result].name)
+                self.settings.set_string("frida.process_name", processes_reorder[choice_f.result].name)
                 bv.store_metadata("frida_plugin_process_name", str(processes_reorder[choice_f.result].name))
                 process = processes_reorder[choice_f.result]
                 self.frida_session = device.attach(process.pid)

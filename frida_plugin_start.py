@@ -12,7 +12,7 @@ class FridaPluginStart(FridaPlugin):
         try:
             last_device = bv.query_metadata("frida_plugin_device_id")
         except KeyError:
-            last_device = self.settings.get_string("device_id")
+            last_device = self.settings.get_string("frida.device_id")
 
         devices = []
         device_reorder = []
@@ -26,6 +26,6 @@ class FridaPluginStart(FridaPlugin):
         choice_f = ChoiceField("Devices", devices)
         get_form_input([choice_f], "Get Frida Device")
         if choice_f.result != None:
-            self.settings.set_string("device_id", device_reorder[choice_f.result].id)
+            self.settings.set_string("frida.device_id", device_reorder[choice_f.result].id)
             bv.store_metadata("frida_plugin_device_id", str(device_reorder[choice_f.result].id))
             self.frida_device = device_reorder[choice_f.result]

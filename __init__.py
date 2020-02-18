@@ -12,6 +12,10 @@ from .frida_plugin_reload import FridaPluginReload
 
 intercepts = {}
 settings = Settings("binaryninja-frida")
+settings.register_group("frida", "Frida Settings")
+settings.register_setting("frida.device_id", '{"description" : "Currently selected device id.", "title" : "Frida Device ID", "default" : "", "type" : "string"}')
+settings.register_setting("frida.process_name", '{"description" : "Currently selected process name", "title" : "Frida Selected Process Name", "default" : "", "type" : "string"}')
+
 
 plugin_commands = [
     {
