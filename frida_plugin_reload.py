@@ -1,4 +1,4 @@
-from frida_plugin import FridaPlugin
+from .frida_plugin import FridaPlugin
 
 class FridaPluginReload(FridaPlugin):
     def __init__(self, settings):

@@ -1,4 +1,4 @@
-from frida_plugin import FridaPlugin
+from .frida_plugin import FridaPlugin
 
 from binaryninja import *
 import os
@@ -47,7 +47,7 @@ class FridaPluginAttach(FridaPlugin):
                 filename = os.path.split(bv.file.filename)[-1].split('.')[0] + '.'
                 self.module_name = filename
 
-                for addr, intercept in self.intercepts.items():
+                for addr, intercept in list(self.intercepts.items()):
                     if intercept.is_enabled:
                         intercept.set_module_name(self.module_name)
                         intercept.start(self.frida_session.create_script(intercept.to_frida_script()))

@@ -1,4 +1,4 @@
-from frida_plugin import FridaPlugin
+from .frida_plugin import FridaPlugin
 
 from binaryninja import *
 import frida
