@@ -4,6 +4,7 @@ from binaryninja import *
 
 from .frida_plugin_start import FridaPluginStart
 from .frida_plugin_attach import FridaPluginAttach
+from .frida_plugin_start_attach import FridaPluginStartAttach
 from .frida_plugin_stop import FridaPluginStop
 from .frida_plugin_intercept import FridaPluginIntercept
 from .frida_plugin_modify import FridaPluginModify
@@ -28,6 +29,12 @@ plugin_commands = [
         "title": "Frida: Attach to Process",
         "desc": "",
         "plugin_module": FridaPluginAttach(settings),
+        "type": "main"
+    },
+    {
+        "title": "Frida: Start and attach Process",
+        "desc": "",
+        "plugin_module": FridaPluginStartAttach(settings),
         "type": "main"
     },
     {
