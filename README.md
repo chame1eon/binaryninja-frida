@@ -20,6 +20,10 @@ After installing the plugin, from either the tools menu or by right clicking on 
 
 Once you have the process you want to analyse running, you can select the option "Frida: Attach to Process". Choosing this option will provide you with a list of currently running processes on the system you are targeting. Selecting one of those processes will trigger the plugin to use Frida to attach to that process.
 
+#### Start Process
+
+Use this option to spawn a new process and immediately attach Frida to it. Select the option "Frida: Start and Attach Process".
+
 #### Select Module (Optional)
 
 By default, this plugin will use the name of the binary you are analysing to select the target module. For example, if you currently have libssl.so loaded into Binary Ninja, then the plugin will look for that module in the process address. However, if the binary name cannot be found in the process' address space, then the module must be selected manually by running the "Frida: Select Target Module" menu option.

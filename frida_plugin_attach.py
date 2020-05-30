@@ -31,10 +31,10 @@ class FridaPluginAttach(FridaPlugin):
             processes_reorder = []
             for process in frida_processes:
                 if process.name == last_process:
-                    processes.insert(0, process.name)
+                    processes.insert(0, f'{process.name}-{process.pid}')
                     processes_reorder.insert(0, process)
                 else:
-                    processes.append(process.name)
+                    processes.append(f'{process.name}-{process.pid}')
                     processes_reorder.append(process)
             choice_f = ChoiceField("Processes", processes)
             get_form_input([choice_f], "Attach Frida to Process")

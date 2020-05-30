@@ -1,6 +1,9 @@
 from binaryninja import *
 
 import base64
+from .helpers import to_str, to_bytes
+import traceback
+
 
 class FridaIntercept(object):
     def __init__(self, addr, params, ret, module_name=None, abi='default'):
@@ -19,15 +22,18 @@ class FridaIntercept(object):
 
     def _on_message(self, message, data):
         log.log_info("Frida Plugin: message received from function at address " + self.addr + ":")
+
         if message["type"] == "send":
             log.log_info(message["payload"])
             if data:
                 log.log_info(data)
         elif message["type"] == "error":
-            log.log_error(message["description"])
+            log.log_error(f'Error description: {message}')
+            traceback.print_stack(limit=100)
 
     def set_on_enter(self, onEnter):
         self.onEnter = onEnter
+        log.log_info(f'Debug on_enter: {onEnter}')
         self.invalidated = True
 
     def reset_on_enter(self):
@@ -67,20 +73,28 @@ class FridaIntercept(object):
     def to_frida_script(self):
         script = ""
         if self.module_name:
-            script = """
-                var searchModule = "%s";
+            script = f'''
+                var searchModule = "{self.module_name}";
                 var modules = Process.enumerateModules();
                 var moduleName = null;
-                for (var i = 0; i < modules.length; i++) {
-                    if (modules[i].name.indexOf(searchModule) > -1) {
+
+                for (var i = 0; i < modules.length; i++) {{
+                    if (modules[i].name.indexOf(searchModule) > -1) {{
                         moduleName = modules[i].name;
-                    }
-                }
+                    }}
+                }}
+
                 var base = Module.findBaseAddress(moduleName);
-            """ % (self.module_name)
+
+                console.log("moduleName: " + moduleName);
+                console.log("Base value: " + base);
+                console.log("Nativefunc ptr: " + base.add(ptr("{self.addr}")));
+                \n'''
         else:
             script += 'var base = ptr("0x0");\n'
-        script += 'var f = new NativeFunction(base.add(ptr("' + self.addr + '")), "' + self.ret + '", ['
+
+        script += f'var f = new NativeFunction(base.add(ptr("{self.addr}")), "{self.ret}", ['
+
         for p in self.params:
             script += '"' + p + '", '
 
@@ -106,6 +120,7 @@ class FridaIntercept(object):
 
         script += '});\n'
 
+        log.log_debug(f'to_frida_script: {script}')
         return script
 
     def enable(self):
@@ -144,8 +159,8 @@ class FridaIntercept(object):
         intercept["ret"] = self.ret
         intercept["abi"] = self.abi
         intercept["module_name"] = self.module_name
-        intercept["on_enter"] = base64.b64encode(self.onEnter)
-        intercept["on_leave"] = base64.b64encode(self.onLeave)
+        intercept["on_enter"] = to_str(base64.b64encode(to_bytes(self.onEnter)))
+        intercept["on_leave"] = to_str(base64.b64encode(to_bytes(self.onLeave)))
         intercept["is_enabled"] = self.is_enabled
 
         return intercept
@@ -154,8 +169,8 @@ class FridaIntercept(object):
     def deserialize(intercept):
         fi = FridaIntercept(intercept["addr"], intercept["params"], intercept["ret"], intercept["module_name"], intercept["abi"])
 
-        fi.onEnter = base64.b64decode(intercept["on_enter"])
-        fi.onLeave = base64.b64decode(intercept["on_leave"])
+        fi.onEnter = to_str(base64.b64decode(to_bytes(intercept["on_enter"])))
+        fi.onLeave = to_str(base64.b64decode(to_bytes(intercept["on_leave"])))
         fi.is_enabled = intercept["is_enabled"]
 
         return fi
