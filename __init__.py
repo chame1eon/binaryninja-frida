@@ -1,5 +1,7 @@
 import sys
 
+from collections import OrderedDict
+
 from binaryninja import *
 
 from .frida_plugin_start import FridaPluginStart
@@ -20,61 +22,62 @@ settings.register_setting("frida.process_name", '{"description" : "Currently sel
 
 plugin_commands = [
     {
-        "title": "Frida: Start Plugin",
+        "title": "Frida\\Start Plugin",
         "desc": "",
         "plugin_module": FridaPluginStart(settings),
         "type": "main"
     },
     {
-        "title": "Frida: Attach to Process",
+        "title": "Frida\\Process\\Attach",
         "desc": "",
         "plugin_module": FridaPluginAttach(settings),
         "type": "main"
     },
     {
-        "title": "Frida: Start and attach Process",
+        "title": "Frida\\Process\\Start",
         "desc": "",
         "plugin_module": FridaPluginStartAttach(settings),
         "type": "main"
     },
     {
-        "title": "Frida: Stop Plugin",
+        "title": "Frida\\Stop Plugin",
         "desc": "",
         "plugin_module": FridaPluginStop(settings),
         "type": "main"
     },
     {
-        "title": "Frida: Intercept Function",
+        "title": "Frida\\Intercept\\Function",
         "desc": "",
         "plugin_module": FridaPluginIntercept(settings),
         "type": "function"
     },
     {
-        "title": "Frida: Remove Function Intercept",
+        "title": "Frida\\Intercept\\Remove Function",
         "desc": "",
         "plugin_module": FridaPluginRemove(settings),
         "type": "function"
     },
     {
-        "title": "Frida: Modify Intercept",
+        "title": "Frida\\Intercept\\Modify",
         "desc": "",
         "plugin_module": FridaPluginModify(settings),
         "type": "function"
     },
     {
-        "title": "Frida: Reload",
+        "title": "Frida\\Reload",
         "desc": "",
         "plugin_module": FridaPluginReload(settings),
         "type": "main"
     }
 ]
 
-for c in plugin_commands:
-    title = c["title"]
-    desc = c["desc"]
-    plugin_module = c["plugin_module"]
-    t = c["type"]
-    if t == "main":
+for menu_item in plugin_commands:
+    title = menu_item["title"]
+    desc = menu_item["desc"]
+    plugin_module = menu_item["plugin_module"]
+    plugin_type = menu_item["type"]
+
+    if plugin_type == "main":
         PluginCommand.register(title, desc, plugin_module._run, plugin_module._is_valid)
-    elif t == "function":
+    elif plugin_type == "function":
         PluginCommand.register_for_function(title, desc, plugin_module._run, plugin_module._is_valid)

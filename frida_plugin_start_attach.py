@@ -29,15 +29,24 @@ class FridaPluginStartAttach(FridaPlugin):
                 log.log_error("Frida Plugin: Failed to find device. Please try reconnecting device or select another from the device menu.")
                 return
 
-            # Generate ui text input
+            # Generate ui for reading binary name to spawn
             cmd_line = TextLineField('Command line')
-            ret = get_form_input([cmd_line], "Start Process")
+            choice_field = ChoiceField("Start Process", [bv.file.original_filename, "Command line"])
+            ret = get_form_input([choice_field,cmd_line], "Start Process")
 
             if not ret:
                 log.log_info("No binary to spawn specified.")
                 return
 
-            self.binary_name = cmd_line.result
+            if choice_field.result == 1:
+                # Select choice is to read textlinefiled
+                print(choice_field.result)
+                self.binary_name = cmd_line.result
+                log.log_info(f"Binary is {self.binary_name}.")
+            else:
+                self.binary_name = bv.file.original_filename
+
+            # Begin running process
             frida_pid = device.spawn(self.binary_name)
             log.log_info(f'Spawned process pid: {frida_pid}')
             self.frida_session = device.attach(frida_pid)
